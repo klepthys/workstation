@@ -1,0 +1,14 @@
+#!/bin/sh
+OPTS="-oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no"
+if [ -z $1 ];then
+	echo "usage : "
+	echo "\tsshproto hostname"
+	echo "\tsshproto user@hostname"
+else
+	if [ ! -z $(echo "$1"|grep -e "^\w*@[\w0-9\.]*$") ];then
+		SSH="ssh $OPTS $1"
+	else
+		SSH="ssh $OPTS root@$1"
+	fi
+	$SSH
+fi

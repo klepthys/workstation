@@ -1,0 +1,13 @@
+Host holusion
+	Hostname 10.0.0.1
+	StrictHostKeyChecking no
+	UserKnownHostsFile /dev/null
+	User root
+
+Host server
+	Hostname dev.holusion.net
+	User sebastien
+Host backup
+	Hostname backup.holusion.net
+	User sebastien
+
