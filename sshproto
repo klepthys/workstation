@@ -1,9 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 OPTS="-oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no"
 if [ -z $1 ];then
-	echo "usage : "
-	echo "\tsshproto hostname"
-	echo "\tsshproto user@hostname"
+	HOSTS=$(nmap -p 3000,22 192.168.1.20-100|grep "3000/tcp open" -B4 |grep -E "22/tcp\s*open" -B 3|grep Nmap |cut -d " " -f 5)
+	ssh $OPTS root@$HOSTS
 else
 	if [ ! -z $(echo "$1"|grep -e "^\w*@[\w0-9\.]*$") ];then
 		SSH="ssh $OPTS $1"
