@@ -11,3 +11,6 @@ Host backup
 	Hostname backup.holusion.net
 	User sebastien
 
+Host ftp
+	Hostname ftp.holusion.com
+	User holusion
