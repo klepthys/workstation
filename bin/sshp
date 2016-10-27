@@ -1,0 +1,34 @@
+#!/bin/sh
+set -e
+WIDTH=78
+HEIGHT=20
+SSH_OPTS="-oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no"
+
+
+connect(){
+  ssh $SSH_OPTS $1
+}
+
+#Split on every tab. Format is :
+#Name	Version	Ip	Up	Running
+if test ! -z $1 ;then
+  if [ ! -z $(echo "$1"|grep -e "^\w*@[\w0-9\.]*$") ] ;then
+    connect "$1"
+  else
+    connect "root@$1"
+  fi
+  exit 0
+fi
+
+PRODUCTS=$(wget -q "products.holusion.net/api/list.txt" -O -|awk 'BEGIN { FS="\t"; }
+{ if ($4 =="true" && $5 =="true")
+  print $3, $1
+}' -)
+
+IP=$(whiptail --clear --menu "Choose a Product" $HEIGHT $WIDTH 10 "10.0.0.1" "wifi" "custom" "user provided" $PRODUCTS  3>&1 1>&2 2>&3)
+
+if test "$IP" = "custom" ;then
+  IP=$(whiptail --inputbox "Device's IP" 8 78 192.168.1.0 --title "Custom device IP" 3>&1 1>&2 2>&3)
+fi
+
+connect root@$IP
