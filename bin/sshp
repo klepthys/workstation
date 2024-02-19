@@ -4,17 +4,18 @@ WIDTH=78
 HEIGHT=20
 SSH_OPTS="-oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no"
 
-
+method="ssh"
 connect(){
   #If sshpass exist we have an opportunity to provide direct access.
   if command -v sshpass >/dev/null 2>&1 ;then
-    if test -z "$(echo "$1"|grep -e "^root@.*$")" ;then
-      sshpass -p holobox ssh $SSH_OPTS $1
-    elif test -z "$(echo "$1"|grep -e "^user@.*$")" ;then
-      sshpass -p user ssh $SSH_OPTS $1
+    if ! test -z "$(echo "$1"|grep -e "^root@.*$")" ;then
+      sshpass -p holobox $method $SSH_OPTS "$1"
+    elif ! test -z "$(echo "$1"|grep -e "^user@.*$")" ;then
+      echo "connect as user"
+      sshpass -p user $method $SSH_OPTS "$1"
     fi
   else
-    ssh $SSH_OPTS $1
+    $method $SSH_OPTS "$1"
   fi
 
 }
@@ -30,23 +31,34 @@ arg_connect(){
 }
 
 #First try to parse command line arguments
-if test ! -z $1 ;then
-  if test "$1" = "--help" || test "$1" = "-h" ;then
-    echo "Usage: "
-    echo "\t- connect to known host : sshp [username@]target_ip"
-    echo "\t- scan network :          sshp"
-    echo "\t\t(only if products.holusion.net is reachable) "
-  else
-    arg_connect "$1"
-  fi
-  exit 0
-fi
+while test $# -gt 0
+do
+        key="$1"
+        case $key in
+        -f|--ftp)
+                echo "Method: sftp"
+                method="sftp"
+        ;;
+        -h|--help)
+                echo "Usage: "
+                echo "\t- connect to known host : sshp [username@]target_ip"
+                echo "\t- scan network :          sshp"
+                echo "\t\t(only if products.holusion.net is reachable) "
+        ;;
+        *)
+                arg_connect "$key"
+                exit 0
+        ;;
+        esac
+        shift
+done
+
 
 #Split on every tab. Format is :
-#Name	Version	Ip	Up	Running
-PRODUCTS=`curl -sL -f -H "Accept: text/plain" "http://products.holusion.net/list" | awk 'BEGIN { FS=";"; }
+#Name   Version Ip      Up      Running
+PRODUCTS=`curl -sSL -f -H "Accept: text/plain" "https://products.holusion.net/api/v1/products" | awk 'BEGIN { FS=";"; }
 { if ($3 =="running" || $3 == "online")
-	printf "%s %s_(%s) ", $4, $1, $3  
+        printf "%s %s_(%s) ", $4, $1, $3  
 }' -`
 echo "Products : $PRODUCTS"
 IP="$(whiptail --clear --title "Target Selection" --menu "Choose a Product" $HEIGHT $WIDTH 10 "custom" "user provided" $PRODUCTS 3>&1 1>&2 2>&3)"
@@ -55,4 +67,5 @@ if test "$IP" = "custom" ;then
   IP="$(whiptail --inputbox "Device's IP" 8 78 192.168.1.0 --title "Custom device IP" 3>&1 1>&2 2>&3)"
 fi
 echo "Connecting to $IP"
-connect "root@$IP"
+connect "user@$IP"
+

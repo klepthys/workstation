@@ -1,0 +1,20 @@
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+[user]
+	name = Sebastien DUMETZ
+	email = s.dumetz@holusion.com
+[pull]
+	ff = only
+[core]
+	excludesfile = /home/sebastien/.config/git/exclude
+[init]
+	defaultBranch = main
+[rerere]
+	enabled = true
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate

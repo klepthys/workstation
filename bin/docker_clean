@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+# Run this on a timer
+
+docker image prune -a --force \
+          --filter "until=480h"
+
+docker container prune --force \
+          --filter "until=72h"
+
+docker network prune --force \
+  --filter "until=24h"
+
+docker volume prune --force
+
